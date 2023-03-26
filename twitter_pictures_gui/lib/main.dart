@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 // CSV
 // import 'dart:convert';
@@ -38,8 +39,11 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  int _imageIndex = 0;
+  double _imageWidth = 0;
 
   String csvPath = dotenv.env['CSV_PATH']!;
 
@@ -53,23 +57,39 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _incrementImageIndex() {
+    setState(() {
+      if (_imageIndex < _imagePaths.length - 1) {
+        _imageIndex++;
+      }
+    });
+  }
+
+  void _decrementImageIndex() {
+    setState(() {
+      if (_imageIndex > 0) {
+        _imageIndex--;
+      }
+    });
+  }
+
   Future<List<String>> _readCsv() async {
     final file = File(csvPath);
     final lines = await file.readAsLines();
-    // csvData = lines.join('\n');
-    // csvData = csvPath;
+
     List<String> imagePaths = [];
     lines.forEach((element)
     {
       imagePaths.add(element.split(',')[5]);
-      // print(element.split(',')[5]);
     });
+
     return imagePaths;
     // return lines.map((line) => line.split(',')).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> images = [];
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -78,19 +98,52 @@ class _MyHomePageState extends State<MyHomePage> {
         future: _readCsv(),
         builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
           if (snapshot.hasData) {
-            _imagePaths = snapshot.data!;
-            return ListView.builder(
-              itemCount: _imagePaths.length,
-              itemBuilder: (BuildContext context, int index) {
-                return ListTile(
-                  title: Text(_imagePaths[index]),
-                  leading: Image.file(
-                    File(_imagePaths[index]),
-                    width: 300,
-                  ),
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.connectionState == ConnectionState.none) {
+              return CircularProgressIndicator();
+            
+            } else if (snapshot.connectionState == ConnectionState.active) {
+              return CircularProgressIndicator();
+
+            } else if (snapshot.connectionState == ConnectionState.done) {
+              if (snapshot.hasError) {
+                return Text("fetch error");
+              } else {
+                _imagePaths = snapshot.data!;
+                for(int i = 0; i < _imagePaths.length; i++ ) {
+                  // images.add(File(_imagePaths[i]));
+                  images.add(
+                    Image.file(
+                      File(_imagePaths[i]),
+                      fit: BoxFit.cover
+                    )
+                  );
+                }
+                return Container(
+                  height: 400.0,
+                  child: CarouselSlider(
+                    items: images,
+                    
+                    options: CarouselOptions(
+                      autoPlay: false,
+                      initialPage: _imageIndex,
+                      enableInfiniteScroll: true,
+                      onPageChanged: (index, reason) {
+                        setState(() {
+                          _imageIndex = index;
+                        });
+                      }
+
+                    ),
+                  )
                 );
-              },
-            );
+              }
+            }
+
+            return Center(child: CircularProgressIndicator());
+
           } else {
             return Center(child: CircularProgressIndicator());
           }

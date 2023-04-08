@@ -104,7 +104,6 @@ class _MyHomePageState extends State<MyHomePage> {
       _images.clear();
       for (int i = 0; i < _tweet.length; i++) {
         String ipath = _tweet[i][5];
-        debugPrint(ipath);
         _images.add(
           Image.file(
             File(ipath),

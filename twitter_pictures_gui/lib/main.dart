@@ -50,6 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String csvData = 'loading';
 
    List<String> _imagePaths = [];
+   final List<Widget> _images = []; // 画像を格納するリスト
 
   void _incrementCounter() {
     setState(() {
@@ -88,72 +89,56 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _initImages(); // 画像リストを初期化する
+  }
+
+  Future<void> _initImages() async {
+    final paths = await _readCsv();
+    setState(() {
+      _imagePaths = paths;
+      _images.clear();
+      for (int i = 0; i < _imagePaths.length; i++) {
+        _images.add(
+          Image.file(
+            File(_imagePaths[i]),
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    List<Widget> images = [];
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: FutureBuilder(
-        future: _readCsv(),
-        builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
-          if (snapshot.hasData) {
-
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
-            } else if (snapshot.connectionState == ConnectionState.none) {
-              return CircularProgressIndicator();
-            
-            } else if (snapshot.connectionState == ConnectionState.active) {
-              return CircularProgressIndicator();
-
-            } else if (snapshot.connectionState == ConnectionState.done) {
-              if (snapshot.hasError) {
-                return Text("fetch error");
-              } else {
-                _imagePaths = snapshot.data!;
-                for(int i = 0; i < _imagePaths.length; i++ ) {
-                  // images.add(File(_imagePaths[i]));
-                  images.add(
-                    Image.file(
-                      File(_imagePaths[i]),
-                      fit: BoxFit.cover
-                    )
-                  );
-                }
-                return Container(
-                  height: 400.0,
-                  child: CarouselSlider(
-                    items: images,
-                    
-                    options: CarouselOptions(
-                      autoPlay: false,
-                      initialPage: _imageIndex,
-                      enableInfiniteScroll: true,
-                      onPageChanged: (index, reason) {
-                        setState(() {
-                          _imageIndex = index;
-                        });
-                      }
-
-                    ),
-                  )
-                );
-              }
-            }
-
-            return Center(child: CircularProgressIndicator());
-
-          } else {
-            return Center(child: CircularProgressIndicator());
-          }
-        },
+      body: Container(
+        height: 500.0,
+        width: 1000.0,
+        padding: const EdgeInsets.all(5.0),
+        decoration: BoxDecoration(
+          color: Color.fromARGB(255, 94, 94, 94),
+          border: Border.all(color: Color.fromARGB(255, 40, 179, 102), width: 3),
+        ),
+        child: CarouselSlider(
+          items: _images,
+          key: UniqueKey(),
+          options: CarouselOptions(
+            autoPlay: false,
+            initialPage: _imageIndex,
+            enableInfiniteScroll: true,
+            onPageChanged: (index, reason) {
+              setState(() {
+                _imageIndex = index;
+              });
+            },
+          ),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

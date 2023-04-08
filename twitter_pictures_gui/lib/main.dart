@@ -110,6 +110,10 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  final imageFrameBackgroundColor = const Color.fromARGB(255, 94, 94, 94);
+  final imageBorderColor = const Color.fromARGB(255, 40, 179, 102);
+  final imageIndexStyle = const TextStyle(fontSize: 20, color: Colors.white);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,26 +122,39 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Container(
         height: 500.0,
-        width: 1000.0,
+        width: 800.0,
         padding: const EdgeInsets.all(5.0),
         decoration: BoxDecoration(
-          color: Color.fromARGB(255, 94, 94, 94),
-          border: Border.all(color: Color.fromARGB(255, 40, 179, 102), width: 3),
+          color: imageFrameBackgroundColor,
+          border: Border.all(color: imageBorderColor, width: 3),
         ),
-        child: CarouselSlider(
-          items: _images,
-          key: UniqueKey(),
-          options: CarouselOptions(
-            autoPlay: false,
-            initialPage: _imageIndex,
-            enableInfiniteScroll: true,
-            onPageChanged: (index, reason) {
-              setState(() {
-                _imageIndex = index;
-              });
-            },
-          ),
-        ),
+        child: Column(
+          children: [
+            CarouselSlider(
+              items: _images,
+              key: UniqueKey(),
+              options: CarouselOptions(
+                autoPlay: false,
+                initialPage: _imageIndex,
+                enableInfiniteScroll: true,
+                onPageChanged: (index, reason) {
+                  setState(() {
+                    _imageIndex = index;
+                  });
+                },
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '$_imageIndex',
+                  style: imageIndexStyle,
+                )
+              ],
+            )
+          ],
+        ) 
       ),
     );
   }

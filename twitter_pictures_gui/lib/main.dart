@@ -49,8 +49,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String csvData = 'loading';
 
-   List<String> _imagePaths = [];
-   final List<Widget> _images = []; // 画像を格納するリスト
+  List<List<String>> _tweet = [];
+  List<String> _imagePaths = [];
+  final List<Widget> _images = []; // 画像を格納するリスト
+
 
   void _incrementCounter() {
     setState(() {
@@ -74,18 +76,19 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<List<String>> _readCsv() async {
+  Future<List<List<String>>> _readCsv() async {
     final file = File(csvPath);
     final lines = await file.readAsLines();
 
-    List<String> imagePaths = [];
-    lines.forEach((element)
-    {
-      imagePaths.add(element.split(',')[5]);
-    });
+    List<List<String>> imageData = [];
 
-    return imagePaths;
-    // return lines.map((line) => line.split(',')).toList();
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      List<String> imageInfo = line.split(',');
+      imageData.add(imageInfo);
+    };
+
+    return imageData;
   }
 
   @override
@@ -95,14 +98,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _initImages() async {
-    final paths = await _readCsv();
+    final readCsvData = await _readCsv();
     setState(() {
-      _imagePaths = paths;
+      _tweet = readCsvData;
       _images.clear();
-      for (int i = 0; i < _imagePaths.length; i++) {
+      for (int i = 0; i < _tweet.length; i++) {
+        String ipath = _tweet[i][5];
         _images.add(
           Image.file(
-            File(_imagePaths[i]),
+            File(ipath),
             fit: BoxFit.cover,
           ),
         );

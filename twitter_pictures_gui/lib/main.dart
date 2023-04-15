@@ -49,7 +49,18 @@ class _MyHomePageState extends State<MyHomePage> {
   int _imageIndex = 0;
   double _imageWidth = 0;
 
-  String csvPath = dotenv.env['CSV_PATH']!;
+  final String csvPath = dotenv.env['CSV_PATH']!;
+  final String categories = dotenv.env['CATS']!;
+  final String _displayTypes = dotenv.env['TYPES']!;
+  final String _status = dotenv.env['STATUS']!;
+  
+  List<String> _catList = [];
+  List<String> _displayTypeList = [];
+  List<String> _statusList = [];
+
+  List<List<bool>> _categoriesCheckedValues = [];
+  List<List<bool>> _displayTypeToggleValues = [];
+  List<List<bool>> _statusToggleValues = [];
 
   String csvData = 'loading';
 
@@ -103,6 +114,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _initImages() async {
     final readCsvData = await _readCsv();
+
+    _catList = categories.split(',');
+    _displayTypeList = _displayTypes.split(',');
+    _statusList = _status.split(',');
+
     setState(() {
       _tweet = readCsvData;
       _images.clear();
@@ -111,9 +127,31 @@ class _MyHomePageState extends State<MyHomePage> {
         _images.add(
           Image.file(
             File(ipath),
-            fit: BoxFit.cover,
+            fit: BoxFit.contain,
+            width: 700,
+            height: 500,
           ),
         );
+
+        // init categories checked values
+        List<bool> tmp = [];
+        for (int j = 0; j < _catList.length; j++) {
+          tmp.add(false);
+        }
+        _categoriesCheckedValues.add(tmp);
+
+        tmp = [];
+        for (int j = 0; j < _displayTypeList.length; j++) {
+          tmp.add(false);
+        }
+        _displayTypeToggleValues.add(tmp);
+
+        tmp = [];
+        for (int j = 0; j < _statusList.length; j++) {
+          tmp.add(false);
+        }
+        _statusToggleValues.add(tmp);
+
       }
     });
   }
@@ -124,11 +162,12 @@ class _MyHomePageState extends State<MyHomePage> {
   final imageFilePathStyle = const TextStyle(fontSize: 12, color: Colors.white);
 
   DateTime _lastEventTime = DateTime(0); // 最後に処理されたイベントの時刻 キーボード入力が重複するため回避策
-  final keyDuration = const Duration(milliseconds: 200);
+  final keyDuration = const Duration(milliseconds: 500);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(widget.title),
       ),
@@ -159,8 +198,8 @@ class _MyHomePageState extends State<MyHomePage> {
             }
         },
         child: Container(
-          height: 500.0,
-          width: 800.0,
+          height: 600.0,
+          width: 1000.0,
           padding: const EdgeInsets.all(5.0),
           decoration: BoxDecoration(
             color: imageFrameBackgroundColor,
@@ -169,7 +208,91 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             children: [
               CarouselSlider(
-                items: _images,
+                items: _images.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final imageWidget = entry.value;
+
+                  final buttons = List.generate(_displayTypeList.length, (buttonIndex) {
+                    return Text(_displayTypeList[buttonIndex]);
+                  });
+
+                  final statusButtons = List.generate(_statusList.length, (buttonIndex) {
+                    return Text(_statusList[buttonIndex]);
+                  });
+
+                  final checkboxes = List.generate(_categoriesCheckedValues[index].length, (checkboxIndex) {
+                    return Row(
+                      children: [
+                        Checkbox(
+                          value: _categoriesCheckedValues[index][checkboxIndex],
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _categoriesCheckedValues[index][checkboxIndex] = value!;
+                            });
+                          },
+                        ),
+                        Text(_catList[checkboxIndex]),
+                      ],
+                    );
+                  });
+
+                  final toggleButtons = [
+                    ToggleButtons(
+                      children: buttons,
+                      isSelected: _displayTypeToggleValues[index],
+                      onPressed: (buttonIndex) {
+                        setState(() {
+                          for (int i = 0; i < _displayTypeToggleValues[index].length; i++) {
+                            if (i == buttonIndex) {
+                              _displayTypeToggleValues[index][i] = true;
+                            } else {
+                              _displayTypeToggleValues[index][i] = false;
+                            }
+                          }
+                        });
+                      },
+                    ),
+                  ];
+
+                  final statusToggleButtons = [
+                    ToggleButtons(
+                      children: statusButtons,
+                      isSelected: _statusToggleValues[index],
+                      onPressed: (buttonIndex) {
+                        setState(() {
+                          for (int i = 0; i < _statusToggleValues[index].length; i++) {
+                            if (i == buttonIndex) {
+                              _statusToggleValues[index][i] = true;
+                            } else {
+                              _statusToggleValues[index][i] = false;
+                            }
+                          }
+                        });
+                      },
+                    ),
+                  ];
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: imageWidget,
+                      ),
+                      SizedBox(width: 16),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ...checkboxes,
+                          SizedBox(height: 16),
+                          Row(children: toggleButtons),
+                          Row(children: statusToggleButtons),
+                        ],
+                      ),
+                    ],
+                  );
+
+                }).toList(),
                 key: UniqueKey(),
                 options: CarouselOptions(
                   autoPlay: false,
@@ -191,7 +314,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   )
                 ],
               ),
-              Row(
+              /* Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
@@ -199,7 +322,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     style: imageFilePathStyle,
                   )
                 ],
-              )
+              )*/
             ],
           )
         )

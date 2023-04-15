@@ -49,10 +49,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int _imageIndex = 0;
   double _imageWidth = 0;
 
-  String csvPath = dotenv.env['CSV_PATH']!;
-  String categories = "hoge,fuga,heke";
-  String _displayTypes = "aaa,bbb,ccc";
-  String _status = "xxx,yyy,zzz";
+  final String csvPath = dotenv.env['CSV_PATH']!;
+  final String categories = dotenv.env['CATS']!;
+  final String _displayTypes = dotenv.env['TYPES']!;
+  final String _status = dotenv.env['STATUS']!;
   
   List<String> _catList = [];
   List<String> _displayTypeList = [];
@@ -162,7 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final imageFilePathStyle = const TextStyle(fontSize: 12, color: Colors.white);
 
   DateTime _lastEventTime = DateTime(0); // 最後に処理されたイベントの時刻 キーボード入力が重複するため回避策
-  final keyDuration = const Duration(milliseconds: 200);
+  final keyDuration = const Duration(milliseconds: 500);
 
   @override
   Widget build(BuildContext context) {

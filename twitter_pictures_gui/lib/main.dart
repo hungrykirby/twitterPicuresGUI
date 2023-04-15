@@ -77,17 +77,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementImageIndex() {
     setState(() {
-      if (_imageIndex < _imagePaths.length - 1) {
-        _imageIndex++;
-      }
+      _imageIndex = (_imageIndex + 1) % _images.length;
     });
   }
 
   void _decrementImageIndex() {
     setState(() {
-      if (_imageIndex > 0) {
-        _imageIndex--;
-      }
+      _imageIndex = (_imageIndex - 1 + _images.length) % _images.length;
     });
   }
 
@@ -129,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
             File(ipath),
             fit: BoxFit.contain,
             width: 700,
-            height: 500,
+            height: 400,
           ),
         );
 
@@ -197,133 +193,148 @@ class _MyHomePageState extends State<MyHomePage> {
               _lastEventTime = currentTime;
             }
         },
-        child: Container(
-          height: 600.0,
-          width: 1000.0,
-          padding: const EdgeInsets.all(5.0),
-          decoration: BoxDecoration(
-            color: imageFrameBackgroundColor,
-            border: Border.all(color: imageBorderColor, width: 3),
-          ),
-          child: Column(
-            children: [
-              CarouselSlider(
-                items: _images.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final imageWidget = entry.value;
+        child: SingleChildScrollView(
+          child: Container(
+            height: 700.0,
+            width: 1000.0,
+            padding: const EdgeInsets.all(5.0),
+            decoration: BoxDecoration(
+              color: imageFrameBackgroundColor,
+              border: Border.all(color: imageBorderColor, width: 3),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: _decrementImageIndex,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.arrow_forward),
+                      onPressed: _incrementImageIndex,
+                    ),
+                  ],
+                ),
+                CarouselSlider(
+                  items: _images.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final imageWidget = entry.value;
 
-                  final buttons = List.generate(_displayTypeList.length, (buttonIndex) {
-                    return Text(_displayTypeList[buttonIndex]);
-                  });
+                    final buttons = List.generate(_displayTypeList.length, (buttonIndex) {
+                      return Text(_displayTypeList[buttonIndex]);
+                    });
 
-                  final statusButtons = List.generate(_statusList.length, (buttonIndex) {
-                    return Text(_statusList[buttonIndex]);
-                  });
+                    final statusButtons = List.generate(_statusList.length, (buttonIndex) {
+                      return Text(_statusList[buttonIndex]);
+                    });
 
-                  final checkboxes = List.generate(_categoriesCheckedValues[index].length, (checkboxIndex) {
+                    final checkboxes = List.generate(_categoriesCheckedValues[index].length, (checkboxIndex) {
+                      return Row(
+                        children: [
+                          Checkbox(
+                            value: _categoriesCheckedValues[index][checkboxIndex],
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _categoriesCheckedValues[index][checkboxIndex] = value!;
+                              });
+                            },
+                          ),
+                          Text(_catList[checkboxIndex]),
+                        ],
+                      );
+                    });
+
+                    final toggleButtons = [
+                      ToggleButtons(
+                        children: buttons,
+                        isSelected: _displayTypeToggleValues[index],
+                        onPressed: (buttonIndex) {
+                          setState(() {
+                            for (int i = 0; i < _displayTypeToggleValues[index].length; i++) {
+                              if (i == buttonIndex) {
+                                _displayTypeToggleValues[index][i] = true;
+                              } else {
+                                _displayTypeToggleValues[index][i] = false;
+                              }
+                            }
+                          });
+                        },
+                      ),
+                    ];
+
+                    final statusToggleButtons = [
+                      ToggleButtons(
+                        children: statusButtons,
+                        isSelected: _statusToggleValues[index],
+                        onPressed: (buttonIndex) {
+                          setState(() {
+                            for (int i = 0; i < _statusToggleValues[index].length; i++) {
+                              if (i == buttonIndex) {
+                                _statusToggleValues[index][i] = true;
+                              } else {
+                                _statusToggleValues[index][i] = false;
+                              }
+                            }
+                          });
+                        },
+                      ),
+                    ];
+
                     return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Checkbox(
-                          value: _categoriesCheckedValues[index][checkboxIndex],
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _categoriesCheckedValues[index][checkboxIndex] = value!;
-                            });
-                          },
+                        Expanded(
+                          child: imageWidget,
                         ),
-                        Text(_catList[checkboxIndex]),
+                        SizedBox(width: 16),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            ...checkboxes,
+                            SizedBox(height: 16),
+                            Row(children: toggleButtons),
+                            Row(children: statusToggleButtons),
+                          ],
+                        ),
                       ],
                     );
-                  });
 
-                  final toggleButtons = [
-                    ToggleButtons(
-                      children: buttons,
-                      isSelected: _displayTypeToggleValues[index],
-                      onPressed: (buttonIndex) {
-                        setState(() {
-                          for (int i = 0; i < _displayTypeToggleValues[index].length; i++) {
-                            if (i == buttonIndex) {
-                              _displayTypeToggleValues[index][i] = true;
-                            } else {
-                              _displayTypeToggleValues[index][i] = false;
-                            }
-                          }
-                        });
-                      },
-                    ),
-                  ];
-
-                  final statusToggleButtons = [
-                    ToggleButtons(
-                      children: statusButtons,
-                      isSelected: _statusToggleValues[index],
-                      onPressed: (buttonIndex) {
-                        setState(() {
-                          for (int i = 0; i < _statusToggleValues[index].length; i++) {
-                            if (i == buttonIndex) {
-                              _statusToggleValues[index][i] = true;
-                            } else {
-                              _statusToggleValues[index][i] = false;
-                            }
-                          }
-                        });
-                      },
-                    ),
-                  ];
-
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: imageWidget,
-                      ),
-                      SizedBox(width: 16),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          ...checkboxes,
-                          SizedBox(height: 16),
-                          Row(children: toggleButtons),
-                          Row(children: statusToggleButtons),
-                        ],
-                      ),
-                    ],
-                  );
-
-                }).toList(),
-                key: UniqueKey(),
-                options: CarouselOptions(
-                  autoPlay: false,
-                  initialPage: _imageIndex,
-                  enableInfiniteScroll: true,
-                  onPageChanged: (index, reason) {
-                    setState(() {
-                      _imageIndex = index;
-                    });
-                  },
+                  }).toList(),
+                  key: UniqueKey(),
+                  options: CarouselOptions(
+                    autoPlay: false,
+                    initialPage: _imageIndex,
+                    enableInfiniteScroll: true,
+                    onPageChanged: (index, reason) {
+                      setState(() {
+                        _imageIndex = index;
+                      });
+                    },
+                  ),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '$_imageIndex',
-                    style: imageIndexStyle,
-                  )
-                ],
-              ),
-              /* Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _tweet[_imageIndex][5],
-                    style: imageFilePathStyle,
-                  )
-                ],
-              )*/
-            ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$_imageIndex',
+                      style: imageIndexStyle,
+                    )
+                  ],
+                ),
+                /* Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _tweet[_imageIndex][5],
+                      style: imageFilePathStyle,
+                    )
+                  ],
+                )*/
+              ],
+            )
           )
         )
       ),

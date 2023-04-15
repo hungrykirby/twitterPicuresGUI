@@ -13,6 +13,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 // enable keyboard input
 import 'package:flutter/services.dart';
 
+import 'package:path_provider/path_provider.dart';
+
 Future<void> main() async {
   await dotenv.load();
   
@@ -150,6 +152,31 @@ class _MyHomePageState extends State<MyHomePage> {
 
       }
     });
+  }
+
+  Future<void> _downloadCsv() async {
+    final csvData = _tweet.asMap().entries.map((entry) {
+      final index = entry.key;
+      final imageInfo = entry.value;
+
+      final checkboxes = _categoriesCheckedValues[index].join('-');
+      final toggles = _displayTypeToggleValues[index].join('-');
+      final statusToggles = _statusToggleValues[index].join('-');
+
+      return '$index,${imageInfo[5]},$checkboxes,$toggles,$statusToggles';
+    }).join('\n');
+
+    // final directory = await getExternalStorageDirectory();
+
+    final Directory directory = await getApplicationDocumentsDirectory();
+
+    final path = '${directory!.path}/images.csv';
+    final file = File(path);
+    await file.writeAsString(csvData);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('CSV downloaded to ${directory.path}')),
+    );
   }
 
   final imageFrameBackgroundColor = const Color.fromARGB(255, 94, 94, 94);
@@ -337,6 +364,11 @@ class _MyHomePageState extends State<MyHomePage> {
             )
           )
         )
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _downloadCsv,
+        tooltip: 'Download CSV',
+        child: Icon(Icons.file_download),
       ),
     );
   }

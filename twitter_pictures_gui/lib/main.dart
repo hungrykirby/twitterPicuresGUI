@@ -189,9 +189,9 @@ class _MyHomePageState extends State<MyHomePage> {
         imageInfo[5],
         imageInfo[1],
         imageInfo[2],
-        typesTextList.join('-=-'),
+        typesTextList[0], // toggleなので配列の長さは1になるはず
         catsTextList.join('-=-'),
-        statusTextList.join('-=-'),
+        statusTextList[0], // toggleなので配列の長さは1になるはず
       ];
       return csvRow.join(',');
     }).where((row) => row != null).join('\n');

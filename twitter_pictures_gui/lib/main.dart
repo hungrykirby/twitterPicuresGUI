@@ -13,6 +13,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 // enable keyboard input
 import 'package:flutter/services.dart';
 
+import 'package:path_provider/path_provider.dart';
+
 Future<void> main() async {
   await dotenv.load();
   
@@ -150,6 +152,62 @@ class _MyHomePageState extends State<MyHomePage> {
 
       }
     });
+  }
+
+  Future<void> _downloadCsv() async {
+    final csvData = _tweet.asMap().entries.map((entry) {
+      final index = entry.key;
+      final imageInfo = entry.value;
+
+      if(!_displayTypeToggleValues[index].any((element) => element)){
+        return null;
+      }
+
+      List<String> typesTextList = [];
+       for (int i = 0; i < _displayTypeToggleValues[index].length; i++) {
+        if (_displayTypeToggleValues[index][i]) {
+          typesTextList.add(_displayTypeList[i]);
+        }
+      }
+
+      List<String> catsTextList = [];
+      for (int i = 0; i < _categoriesCheckedValues[index].length; i++) {
+        if (_categoriesCheckedValues[index][i]) {
+          catsTextList.add(_catList[i]);
+        }
+      }
+
+      List<String> statusTextList = [];
+      for (int i = 0; i < _statusToggleValues[index].length; i++) {
+        if (_statusToggleValues[index][i]) {
+          statusTextList.add(_statusList[i]);
+        }
+      }
+
+     final csvRow = [
+        index.toString(),
+        imageInfo[5],
+        imageInfo[1],
+        imageInfo[2],
+        typesTextList[0], // toggleなので配列の長さは1になるはず
+        catsTextList.join('-=-'),
+        statusTextList[0], // toggleなので配列の長さは1になるはず
+      ];
+      return csvRow.join(',');
+    }).where((row) => row != null).join('\n');
+
+    DateTime now = DateTime.now();
+    String formattedTime = "${now.year}${now.month}${now.day}${now.hour}${now.minute}${now.second}";
+
+    final Directory directory = await getApplicationDocumentsDirectory();
+
+    final path = '${directory!.path}/images${formattedTime}.csv';
+    final file = File(path);
+    await file.writeAsString(csvData);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('CSV downloaded to ${directory.path}')),
+    );
   }
 
   final imageFrameBackgroundColor = const Color.fromARGB(255, 94, 94, 94);
@@ -337,6 +395,11 @@ class _MyHomePageState extends State<MyHomePage> {
             )
           )
         )
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _downloadCsv,
+        tooltip: 'Download CSV',
+        child: Icon(Icons.file_download),
       ),
     );
   }

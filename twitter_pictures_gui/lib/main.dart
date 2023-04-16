@@ -159,18 +159,49 @@ class _MyHomePageState extends State<MyHomePage> {
       final index = entry.key;
       final imageInfo = entry.value;
 
-      final checkboxes = _categoriesCheckedValues[index].join('-');
-      final toggles = _displayTypeToggleValues[index].join('-');
-      final statusToggles = _statusToggleValues[index].join('-');
+      if(!_displayTypeToggleValues[index].any((element) => element)){
+        return null;
+      }
 
-      return '$index,${imageInfo[5]},$checkboxes,$toggles,$statusToggles';
-    }).join('\n');
+      List<String> typesTextList = [];
+       for (int i = 0; i < _displayTypeToggleValues[index].length; i++) {
+        if (_displayTypeToggleValues[index][i]) {
+          typesTextList.add(_displayTypeList[i]);
+        }
+      }
 
-    // final directory = await getExternalStorageDirectory();
+      List<String> catsTextList = [];
+      for (int i = 0; i < _categoriesCheckedValues[index].length; i++) {
+        if (_categoriesCheckedValues[index][i]) {
+          catsTextList.add(_catList[i]);
+        }
+      }
+
+      List<String> statusTextList = [];
+      for (int i = 0; i < _statusToggleValues[index].length; i++) {
+        if (_statusToggleValues[index][i]) {
+          statusTextList.add(_statusList[i]);
+        }
+      }
+
+     final csvRow = [
+        index.toString(),
+        imageInfo[5],
+        imageInfo[1],
+        imageInfo[2],
+        typesTextList.join('-=-'),
+        catsTextList.join('-=-'),
+        statusTextList.join('-=-'),
+      ];
+      return csvRow.join(',');
+    }).where((row) => row != null).join('\n');
+
+    DateTime now = DateTime.now();
+    String formattedTime = "${now.year}${now.month}${now.day}${now.hour}${now.minute}${now.second}";
 
     final Directory directory = await getApplicationDocumentsDirectory();
 
-    final path = '${directory!.path}/images.csv';
+    final path = '${directory!.path}/images${formattedTime}.csv';
     final file = File(path);
     await file.writeAsString(csvData);
 
